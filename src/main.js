@@ -1,7 +1,7 @@
 function calculateSimpleRevenue(purchase, _product) {
   const { discount, sale_price, quantity } = purchase;
   const priceWithDiscount = sale_price * (1 - discount / 100);
-  return Math.round(priceWithDiscount * quantity * 100) / 100;
+  return priceWithDiscount * quantity;
 }
 
 function calculateBonusByProfit(index, total, seller) {
@@ -75,8 +75,7 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
     totalPurchaseCost += product.purchase_price * item.quantity;
   }
 
-  revenue = Math.round(revenue * 100) / 100;
-  totalPurchaseCost = Math.round(totalPurchaseCost * 100) / 100;
+  
   const profit = revenue - totalPurchaseCost;
 
   seller.revenue += revenue;
