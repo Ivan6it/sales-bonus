@@ -18,16 +18,16 @@ function calculateBonusByProfit(index, total, seller) {
 
 function analyzeSalesData(data, options = {}) {
   if (!data.sellers || data.sellers.length === 0) {
-  throw new Error("Нет данных о продавцах (sellers).");
-}
+    throw new Error("Нет данных о продавцах (sellers).");
+  }
 
-if (!data.products || data.products.length === 0) {
-  throw new Error("Нет данных о продуктах (products).");
-}
+  if (!data.products || data.products.length === 0) {
+    throw new Error("Нет данных о продуктах (products).");
+  }
 
-if (!data.purchase_records || data.purchase_records.length === 0) {
-  throw new Error("Нет данных о продажах (purchase_records).");
-}
+  if (!data.purchase_records || data.purchase_records.length === 0) {
+    throw new Error("Нет данных о продажах (purchase_records).");
+  }
 
   if (typeof options !== "object" || options === null) {
     throw new Error("Опции должны быть объектом.");
@@ -61,11 +61,10 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
     const seller = sellersData.get(receipt.seller_id);
     if (!seller) continue;
 
-  let revenue = 0;
+    let revenue = 0;
     for (const item of receipt.items) {
       const product = productsMap.get(item.sku);
       if (!product) continue;
-      // Здесь вызываем calculateRevenue из опций
       revenue += calculateRevenue(item, product);
     }
 
