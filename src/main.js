@@ -1,44 +1,82 @@
-/**
- * Функция для расчета выручки
- * @param purchase запись о покупке
- * @param _product карточка товара
- * @returns {number}
- */
-function calculateSimpleRevenue(purchase, _product) {
-   // @TODO: Расчет выручки от операции
+function calculateSimpleRevenue(items) {
+  return items.reduce((sum, item) => {
+    const priceWithDiscount = item.sale_price * (1 - item.discount / 100);
+    return sum + priceWithDiscount * item.quantity;
+  }, 0);
 }
 
-/**
- * Функция для расчета бонусов
- * @param index порядковый номер в отсортированном массиве
- * @param total общее число продавцов
- * @param seller карточка продавца
- * @returns {number}
- */
-function calculateBonusByProfit(index, total, seller) {
-    // @TODO: Расчет бонуса от позиции в рейтинге
+function calculateBonusByProfit(profit) {
 }
 
-/**
- * Функция для анализа данных продаж
- * @param data
- * @param options
- * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
- */
-function analyzeSalesData(data, options) {
-    // @TODO: Проверка входных данных
+function analyzeSalesData(data) {
+  const productsMap = new Map(data.products.map(p => [p.sku, p]));
+  const sellersData = new Map();
 
-    // @TODO: Проверка наличия опций
+  data.sellers.forEach(seller => {
+    sellersData.set(seller.id, {
+      seller_id: seller.id,
+      name: `${seller.first_name} ${seller.last_name}`,
+      revenue: 0,
+      profit: 0,
+      sales_count: 0,
+      products: new Map()
+    });
+  });
 
-    // @TODO: Подготовка промежуточных данных для сбора статистики
+  for (const receipt of data.purchase_records) {
+    const seller = sellersData.get(receipt.seller_id);
+    if (!seller) continue;
 
-    // @TODO: Индексация продавцов и товаров для быстрого доступа
+    const revenue = calculateSimpleRevenue(receipt.items);
 
-    // @TODO: Расчет выручки и прибыли для каждого продавца
+    let totalPurchaseCost = 0;
+    for (const item of receipt.items) {
+      const product = productsMap.get(item.sku);
+      if (!product) continue;
+      totalPurchaseCost += product.purchase_price * item.quantity;
+    }
+    const profit = revenue - totalPurchaseCost;
 
-    // @TODO: Сортировка продавцов по прибыли
+    seller.revenue += revenue;
+    seller.profit += profit;
+    seller.sales_count += 1;
 
-    // @TODO: Назначение премий на основе ранжирования
+    for (const item of receipt.items) {
+      const oldQty = seller.products.get(item.sku) || 0;
+      seller.products.set(item.sku, oldQty + item.quantity);
+    }
+  }
 
-    // @TODO: Подготовка итоговой коллекции с нужными полями
+  let result = Array.from(sellersData.values()).map(seller => {
+    const top_products = Array.from(seller.products.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([sku, quantity]) => ({ sku, quantity }));
+
+    return {
+      seller_id: seller.seller_id,
+      name: seller.name,
+      revenue: Math.round(seller.revenue * 100) / 100,
+      profit: Math.round(seller.profit * 100) / 100,
+      sales_count: seller.sales_count,
+      top_products,
+      bonus: 0
+    };
+  });
+
+  result.sort((a, b) => b.profit - a.profit);
+
+  for (let i = 0; i < result.length; i++) {
+    if (i === 0) {
+      result[i].bonus = Math.round(result[i].profit * 0.15 * 100) / 100;
+    } else if (i === 1 || i === 2) {
+      result[i].bonus = Math.round(result[i].profit * 0.10 * 100) / 100;
+    } else if (i === result.length - 1) {
+      result[i].bonus = 0;
+    } else {
+      result[i].bonus = Math.round(result[i].profit * 0.05 * 100) / 100;
+    }
+  }
+
+  return result;
 }
