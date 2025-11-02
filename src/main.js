@@ -1,8 +1,7 @@
 function calculateSimpleRevenue(purchase, _product) {
   const { discount, sale_price, quantity } = purchase;
-  const priceCents = Math.round(sale_price * 100);
-  const discountedPriceCents = Math.round(priceCents * (1 - discount / 100));
-  return discountedPriceCents * quantity; // возвращаем в копейках, без деления
+  const priceWithDiscount = sale_price * (1 - discount / 100);
+  return Math.round(priceWithDiscount * quantity * 100) / 100;
 }
 
 function calculateBonusByProfit(index, total, seller) {
@@ -51,24 +50,23 @@ if (Object.keys(options).length == 0) {
   const seller = sellersData.get(receipt.seller_id);
   if (!seller) continue;
 
-  let revenueCents = 0;
+  let revenue = 0;
 for (const item of receipt.items) {
   const product = productsMap.get(item.sku);
   if (!product) continue;
-  revenueCents += calculateSimpleRevenue(item, product);
+  revenue += Math.round(calculateSimpleRevenue(item, product) * 100) / 100;
 }
 
-let totalPurchaseCostCents = 0;
+let totalPurchaseCost = 0;
 for (const item of receipt.items) {
   const product = productsMap.get(item.sku);
   if (!product) continue;
-  totalPurchaseCostCents += Math.round(product.purchase_price * 100) * item.quantity;
+  totalPurchaseCost += Math.round(product.purchase_price * item.quantity * 100) / 100;
 }
+  const profit = revenue - totalPurchaseCost;
 
-const profitCents = revenueCents - totalPurchaseCostCents;
-
-seller.revenue += revenueCents;
-seller.profit += profitCents;
+  seller.revenue += revenue;
+  seller.profit += profit;
   seller.sales_count += 1;
 
   for (const item of receipt.items) {
@@ -86,8 +84,8 @@ seller.profit += profitCents;
     return {
       seller_id: seller.seller_id,
       name: seller.name,
-      revenue: Math.round(seller.revenue) / 100,
-      profit: Math.round(seller.profit) / 100,
+      revenue: Math.round(seller.revenue * 100) / 100,
+      profit: Math.round(seller.profit * 100) / 100,
       sales_count: seller.sales_count,
       top_products,
       bonus: 0
