@@ -47,46 +47,46 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
   const sellersData = new Map();
 
   data.sellers.forEach(seller => {
-  sellersData.set(seller.id, {
-    seller_id: seller.id,
-    name: `${seller.first_name} ${seller.last_name}`,
-    revenue: 0,
-    profit: 0,
-    sales_count: 0,
-    products: new Map()
+    sellersData.set(seller.id, {
+      seller_id: seller.id,
+      name: `${seller.first_name} ${seller.last_name}`,
+      revenue: 0,
+      profit: 0,
+      sales_count: 0,
+      products: new Map()
+    });
   });
-});
 
   for (const receipt of data.purchase_records) {
-  const seller = sellersData.get(receipt.seller_id);
-  if (!seller) continue;
+    const seller = sellersData.get(receipt.seller_id);
+    if (!seller) continue;
 
   let revenue = 0;
-  for (const item of receipt.items) {
-    const product = productsMap.get(item.sku);
-    if (!product) continue;
-    revenue += calculateSimpleRevenue(item, product);
+    for (const item of receipt.items) {
+      const product = productsMap.get(item.sku);
+      if (!product) continue;
+      // Здесь вызываем calculateRevenue из опций
+      revenue += calculateRevenue(item, product);
+    }
+
+    let totalPurchaseCost = 0;
+    for (const item of receipt.items) {
+      const product = productsMap.get(item.sku);
+      if (!product) continue;
+      totalPurchaseCost += product.purchase_price * item.quantity;
+    }
+
+    const profit = revenue - totalPurchaseCost;
+
+    seller.revenue += revenue;
+    seller.profit += profit;
+    seller.sales_count += 1;
+
+    for (const item of receipt.items) {
+      const oldQty = seller.products.get(item.sku) || 0;
+      seller.products.set(item.sku, oldQty + item.quantity);
+    }
   }
-
-  let totalPurchaseCost = 0;
-  for (const item of receipt.items) {
-    const product = productsMap.get(item.sku);
-    if (!product) continue;
-    totalPurchaseCost += product.purchase_price * item.quantity;
-  }
-
-  
-  const profit = revenue - totalPurchaseCost;
-
-  seller.revenue += revenue;
-  seller.profit += profit;
-  seller.sales_count += 1;
-
-  for (const item of receipt.items) {
-    const oldQty = seller.products.get(item.sku) || 0;
-    seller.products.set(item.sku, oldQty + item.quantity);
-  }
-}
 
   let result = Array.from(sellersData.values()).map(seller => {
     const top_products = Array.from(seller.products.entries())
@@ -107,8 +107,8 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
 
   result.sort((a, b) => b.profit - a.profit);
   const totalSellers = result.length;
-for (let i = 0; i < totalSellers; i++) {
-  result[i].bonus = calculateBonusByProfit(i, totalSellers, result[i]);
-}
+  for (let i = 0; i < totalSellers; i++) {
+    result[i].bonus = calculateBonus(i, totalSellers, result[i]);
+  }
   return result;
 }
