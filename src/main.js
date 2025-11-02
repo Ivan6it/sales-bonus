@@ -58,34 +58,35 @@ function analyzeSalesData(data, options = {}) {
   });
 
   for (const receipt of data.purchase_records) {
-    const seller = sellersData.get(receipt.seller_id);
-    if (!seller) continue;
+  const seller = sellersData.get(receipt.seller_id);
+  if (!seller) continue;
 
-    let revenue = 0;
-    for (const item of receipt.items) {
-      const product = productsMap.get(item.sku);
-      if (!product) continue;
-      revenue += calculateRevenue(item, product);
-    }
-
-    let totalPurchaseCost = 0;
-    for (const item of receipt.items) {
-      const product = productsMap.get(item.sku);
-      if (!product) continue;
-      totalPurchaseCost += product.purchase_price * item.quantity;
-    }
-
-    const profit = revenue - totalPurchaseCost;
-
-    seller.revenue += revenue;
-    seller.profit += profit;
-    seller.sales_count += 1;
-
-    for (const item of receipt.items) {
-      const oldQty = seller.products.get(item.sku) || 0;
-      seller.products.set(item.sku, oldQty + item.quantity);
-    }
+  let revenueCents = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    const revenueItem = calculateRevenue(item, product);
+    revenueCents += Math.round(revenueItem * 100);
   }
+
+  let totalPurchaseCostCents = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    totalPurchaseCostCents += Math.round(product.purchase_price * 100) * item.quantity;
+  }
+
+  const profitCents = revenueCents - totalPurchaseCostCents;
+
+  seller.revenue += revenueCents;
+  seller.profit += profitCents;
+  seller.sales_count += 1;
+
+  for (const item of receipt.items) {
+    const oldQty = seller.products.get(item.sku) || 0;
+    seller.products.set(item.sku, oldQty + item.quantity);
+  }
+}
 
   let result = Array.from(sellersData.values()).map(seller => {
   const top_products = Array.from(seller.products.entries())
@@ -93,8 +94,8 @@ function analyzeSalesData(data, options = {}) {
     .slice(0, 10)
     .map(([sku, quantity]) => ({ sku, quantity }));
 
-  const roundedRevenue = Math.round(seller.revenue * 100) / 100;
-  const roundedProfit = Math.round(seller.profit * 100) / 100;
+  const roundedRevenue = seller.revenue / 100; // число с двумя дробными разрядами
+  const roundedProfit = seller.profit / 100;
 
   return {
     seller_id: seller.seller_id,
