@@ -16,7 +16,7 @@ function calculateBonusByProfit(index, total, seller) {
   }
 }
 
-function analyzeSalesData(data) {
+function analyzeSalesData(data, options = {}) {
   if (!data.sellers || data.sellers.length === 0) {
   throw new Error("Нет данных о продавцах (sellers).");
 }
@@ -29,6 +29,9 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
   throw new Error("Нет данных о продажах (purchase_records).");
 }
 
+if (Object.keys(options).length = 0) {
+    throw new Error("Некорректные опции переданы некорректно");
+  }
   const productsMap = new Map(data.products.map(p => [p.sku, p]));
   const sellersData = new Map();
 
