@@ -66,20 +66,20 @@ function analyzeSalesData(data, options = {}) {
     const product = productsMap.get(item.sku);
     if (!product) continue;
     const revenueItem = calculateRevenue(item, product);
-    revenueCents += Math.round(revenueItem * 100);
+    revenueCents += revenueItem;
   }
 
   let totalPurchaseCostCents = 0;
 for (const item of receipt.items) {
   const product = productsMap.get(item.sku);
   if (!product) continue;
-  totalPurchaseCostCents += Math.round(product.purchase_price * item.quantity * 100);
+  totalPurchaseCostCents += product.purchase_price * item.quantity;
 }
 
   const profitCents = revenueCents - totalPurchaseCostCents;
 
-  seller.revenue += revenueCents;
-  seller.profit += profitCents;
+  seller.revenue += Math.round(revenueCents * 100);
+  seller.profit += Math.round(profitCents * 100);
   seller.sales_count += 1;
 
   for (const item of receipt.items) {
