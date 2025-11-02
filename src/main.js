@@ -5,7 +5,18 @@ function calculateSimpleRevenue(items) {
   }, 0);
 }
 
-function calculateBonusByProfit(profit) {
+function calculateBonusByProfit(result) {
+  for (let i = 0; i < result.length; i++) {
+    if (i === 0) {
+      result[i].bonus = Math.round(result[i].profit * 0.15 * 100) / 100;
+    } else if (i === 1 || i === 2) {
+      result[i].bonus = Math.round(result[i].profit * 0.10 * 100) / 100;
+    } else if (i === result.length - 1) {
+      result[i].bonus = 0;
+    } else {
+      result[i].bonus = Math.round(result[i].profit * 0.05 * 100) / 100;
+    }
+  }
 }
 
 function analyzeSalesData(data) {
@@ -65,18 +76,6 @@ function analyzeSalesData(data) {
   });
 
   result.sort((a, b) => b.profit - a.profit);
-
-  for (let i = 0; i < result.length; i++) {
-    if (i === 0) {
-      result[i].bonus = Math.round(result[i].profit * 0.15 * 100) / 100;
-    } else if (i === 1 || i === 2) {
-      result[i].bonus = Math.round(result[i].profit * 0.10 * 100) / 100;
-    } else if (i === result.length - 1) {
-      result[i].bonus = 0;
-    } else {
-      result[i].bonus = Math.round(result[i].profit * 0.05 * 100) / 100;
-    }
-  }
-
+  calculateBonusByProfit(result);
   return result;
 }
