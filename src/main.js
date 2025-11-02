@@ -88,21 +88,24 @@ function analyzeSalesData(data, options = {}) {
   }
 
   let result = Array.from(sellersData.values()).map(seller => {
-    const top_products = Array.from(seller.products.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([sku, quantity]) => ({ sku, quantity }));
+  const top_products = Array.from(seller.products.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([sku, quantity]) => ({ sku, quantity }));
 
-    return {
-      seller_id: seller.seller_id,
-      name: seller.name,
-      revenue: Math.round(seller.revenue * 100) / 100,
-      profit: Math.round(seller.profit * 100) / 100,
-      sales_count: seller.sales_count,
-      top_products,
-      bonus: 0
-    };
-  });
+  const roundedRevenue = Math.round(seller.revenue * 100) / 100;
+  const roundedProfit = Math.round(seller.profit * 100) / 100;
+
+  return {
+    seller_id: seller.seller_id,
+    name: seller.name,
+    revenue: roundedRevenue,
+    profit: roundedProfit,
+    sales_count: seller.sales_count,
+    top_products,
+    bonus: 0
+  };
+});
 
   result.sort((a, b) => b.profit - a.profit);
   const totalSellers = result.length;
