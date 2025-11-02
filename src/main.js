@@ -19,7 +19,36 @@ function calculateBonusByProfit(result) {
   }
 }
 
-function analyzeSalesData(data) {
+
+  function analyzeSalesData(data) {
+  // Проверка, что data передан и является объектом
+  if (!data || typeof data !== 'object') {
+    throw new Error("Некорректные опции: должен быть передан объект 'data'.");
+  }
+
+  // Проверка наличия и типа обязательных полей
+  if (!Array.isArray(data.sellers)) {
+    throw new Error("Некорректные опции: поле 'sellers' должно быть массивом.");
+  }
+  if (!Array.isArray(data.products)) {
+    throw new Error("Некорректные опции: поле 'products' должно быть массивом.");
+  }
+  if (!Array.isArray(data.purchase_records)) {
+    throw new Error("Некорректные опции: поле 'purchase_records' должно быть массивом.");
+  }
+
+  // Проверка на пустые массивы
+  if (data.sellers.length === 0) {
+    throw new Error("Нет данных о продавцах (sellers).");
+  }
+
+  if (data.products.length === 0) {
+    throw new Error("Нет данных о продуктах (products).");
+  }
+
+  if (data.purchase_records.length === 0) {
+    throw new Error("Нет данных о продажах (purchase_records).");
+  }
   if (!data.sellers || data.sellers.length === 0) {
     throw new Error("Нет данных о продавцах (sellers).");
   }
