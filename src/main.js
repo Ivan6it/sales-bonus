@@ -5,17 +5,15 @@ function calculateSimpleRevenue(purchase, _product) {
   return priceWithDiscount * quantity;
 }
 
-function calculateBonusByProfit(result) {
-  for (let i = 0; i < result.length; i++) {
-    if (i === 0) {
-      result[i].bonus = Math.round(result[i].profit * 0.15 * 100) / 100;
-    } else if (i === 1 || i === 2) {
-      result[i].bonus = Math.round(result[i].profit * 0.10 * 100) / 100;
-    } else if (i === result.length - 1) {
-      result[i].bonus = 0;
-    } else {
-      result[i].bonus = Math.round(result[i].profit * 0.05 * 100) / 100;
-    }
+function calculateBonusByProfit(index, total, seller) {
+  if (index === 0) {
+    return Math.round(seller.profit * 0.15 * 100) / 100;
+  } else if (index === 1 || index === 2) {
+    return Math.round(seller.profit * 0.10 * 100) / 100;
+  } else if (index === total - 1) {
+    return 0;
+  } else {
+    return Math.round(seller.profit * 0.05 * 100) / 100;
   }
 }
 
@@ -94,6 +92,9 @@ function analyzeSalesData(data) {
   });
 
   result.sort((a, b) => b.profit - a.profit);
-  calculateBonusByProfit(result);
+  const totalSellers = result.length;
+for (let i = 0; i < totalSellers; i++) {
+  result[i].bonus = calculateBonusByProfit(i, totalSellers, result[i]);
+}
   return result;
 }
