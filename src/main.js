@@ -1,7 +1,7 @@
 function calculateSimpleRevenue(purchase, _product) {
   const { discount, sale_price, quantity } = purchase;
   const priceWithDiscount = sale_price * (1 - discount / 100);
-  return Math.round(priceWithDiscount * quantity * 100);  // сразу в копейках
+  return priceWithDiscount * quantity;
 }
 
 function calculateBonusByProfit(index, total, seller) {
@@ -62,12 +62,12 @@ function analyzeSalesData(data, options = {}) {
   if (!seller) continue;
 
   let revenueCents = 0;
-for (const item of receipt.items) {
-  const product = productsMap.get(item.sku);
-  if (!product) continue;
-  const revenueItem = calculateRevenue(item, product); // уже копейки
-  revenueCents += revenueItem;
-}
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    const revenueItem = calculateRevenue(item, product);
+    revenueCents += Math.round(revenueItem * 100);
+  }
 
   let totalPurchaseCostCents = 0;
 for (const item of receipt.items) {
@@ -94,8 +94,8 @@ for (const item of receipt.items) {
     .slice(0, 10)
     .map(([sku, quantity]) => ({ sku, quantity }));
 
-  const roundedRevenue = Math.round(seller.revenue) / 100;
-  const roundedProfit = Math.round(seller.profit) / 100;
+  const roundedRevenue = seller.revenue / 100; // число с двумя дробными разрядами
+  const roundedProfit = seller.profit / 100;
 
   return {
     seller_id: seller.seller_id,
