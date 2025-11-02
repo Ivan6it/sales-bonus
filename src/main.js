@@ -1,6 +1,5 @@
 function calculateSimpleRevenue(purchase, _product) {
   const { discount, sale_price, quantity } = purchase;
-  // Рассчитываем сумму с учётом скидки и количества
   const priceWithDiscount = sale_price * (1 - discount / 100);
   return priceWithDiscount * quantity;
 }
@@ -19,16 +18,16 @@ function calculateBonusByProfit(index, total, seller) {
 
 function analyzeSalesData(data) {
   if (!data.sellers || data.sellers.length === 0) {
-    throw new Error("Нет данных о продавцах (sellers).");
-  }
+  throw new Error("Нет данных о продавцах (sellers).");
+}
 
-  if (!data.products || data.products.length === 0) {
-    throw new Error("Нет данных о продуктах (products).");
-  }
+if (!data.products || data.products.length === 0) {
+  throw new Error("Нет данных о продуктах (products).");
+}
 
-  if (!data.purchase_records || data.purchase_records.length === 0) {
-    throw new Error("Нет данных о продажах (purchase_records).");
-  }
+if (!data.purchase_records || data.purchase_records.length === 0) {
+  throw new Error("Нет данных о продажах (purchase_records).");
+}
 
   const productsMap = new Map(data.products.map(p => [p.sku, p]));
   const sellersData = new Map();
@@ -48,7 +47,6 @@ function analyzeSalesData(data) {
   const seller = sellersData.get(receipt.seller_id);
   if (!seller) continue;
 
-  // Считаем выручку по каждому item и суммируем
   let revenue = 0;
   for (const item of receipt.items) {
     const product = productsMap.get(item.sku);
