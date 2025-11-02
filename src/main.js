@@ -58,55 +58,52 @@ function analyzeSalesData(data, options = {}) {
   });
 
   for (const receipt of data.purchase_records) {
-  const seller = sellersData.get(receipt.seller_id);
-  if (!seller) continue;
+    const seller = sellersData.get(receipt.seller_id);
+    if (!seller) continue;
 
-  let revenueCents = 0;
-  for (const item of receipt.items) {
-    const product = productsMap.get(item.sku);
-    if (!product) continue;
-    const revenueItem = calculateRevenue(item, product);
-    revenueCents += revenueItem;
+    let revenueSum = 0;
+    for (const item of receipt.items) {
+      const product = productsMap.get(item.sku);
+      if (!product) continue;
+      const revenueItem = calculateRevenue(item, product);
+      revenueSum += revenueItem;
+    }
+
+    let costSum = 0;
+    for (const item of receipt.items) {
+      const product = productsMap.get(item.sku);
+      if (!product) continue;
+      costSum += product.purchase_price * item.quantity;
+    }
+
+    const profitSum = revenueSum - costSum;
+
+    seller.revenue += revenueSum;
+    seller.profit += profitSum;
+    seller.sales_count += 1;
+
+    for (const item of receipt.items) {
+      const oldQty = seller.products.get(item.sku) || 0;
+      seller.products.set(item.sku, oldQty + item.quantity);
+    }
   }
-
-  let totalPurchaseCostCents = 0;
-for (const item of receipt.items) {
-  const product = productsMap.get(item.sku);
-  if (!product) continue;
-  totalPurchaseCostCents += product.purchase_price * item.quantity;
-}
-
-  const profitCents = revenueCents - totalPurchaseCostCents;
-
-  seller.revenue += Math.round(revenueCents * 100);
-  seller.profit += Math.round(profitCents * 100);
-  seller.sales_count += 1;
-
-  for (const item of receipt.items) {
-    const oldQty = seller.products.get(item.sku) || 0;
-    seller.products.set(item.sku, oldQty + item.quantity);
-  }
-}
 
   let result = Array.from(sellersData.values()).map(seller => {
-  const top_products = Array.from(seller.products.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([sku, quantity]) => ({ sku, quantity }));
+    const top_products = Array.from(seller.products.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([sku, quantity]) => ({ sku, quantity }));
 
-  const roundedRevenue = seller.revenue / 100; // число с двумя дробными разрядами
-  const roundedProfit = seller.profit / 100;
-
-  return {
-    seller_id: seller.seller_id,
-    name: seller.name,
-    revenue: roundedRevenue,
-    profit: roundedProfit,
-    sales_count: seller.sales_count,
-    top_products,
-    bonus: 0
-  };
-});
+    return {
+      seller_id: seller.seller_id,
+      name: seller.name,
+      revenue: Math.round(seller.revenue * 100) / 100,
+      profit: Math.round(seller.profit * 100) / 100,
+      sales_count: seller.sales_count,
+      top_products,
+      bonus: 0
+    };
+  });
 
   result.sort((a, b) => b.profit - a.profit);
   const totalSellers = result.length;
