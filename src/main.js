@@ -58,35 +58,40 @@ function analyzeSalesData(data, options = {}) {
   });
 
   for (const receipt of data.purchase_records) {
-    const seller = sellersData.get(receipt.seller_id);
-    if (!seller) continue;
+  const seller = sellersData.get(receipt.seller_id);
+  if (!seller) continue;
 
-    let revenueSum = 0;
-    for (const item of receipt.items) {
-      const product = productsMap.get(item.sku);
-      if (!product) continue;
-      const revenueItem = calculateRevenue(item, product);
-      revenueSum += revenueItem;
-    }
-
-    let costSum = 0;
-    for (const item of receipt.items) {
-      const product = productsMap.get(item.sku);
-      if (!product) continue;
-      costSum += product.purchase_price * item.quantity;
-    }
-
-    const profitSum = revenueSum - costSum;
-
-    seller.revenue += revenueSum;
-    seller.profit += profitSum;
-    seller.sales_count += 1;
-
-    for (const item of receipt.items) {
-      const oldQty = seller.products.get(item.sku) || 0;
-      seller.products.set(item.sku, oldQty + item.quantity);
-    }
+  let revenueSum = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    let revenueItem = calculateRevenue(item, product);
+  /* */  revenueItem = revenueItem; // округляем доход по позиции
+    revenueSum += revenueItem;
   }
+  revenueSum = revenueSum;
+
+  let costSum = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    let costItem = product.purchase_price * item.quantity;
+  /* */  costItem = costItem; // округляем себестоимость по позиции
+    costSum += costItem;
+  }
+  costSum = costSum;
+
+  const profitSum = (revenueSum - costSum); // итоговое округление прибыли
+
+  seller.revenue += revenueSum;
+  seller.profit += profitSum;
+  seller.sales_count += 1;
+
+  for (const item of receipt.items) {
+    const oldQty = seller.products.get(item.sku) || 0;
+    seller.products.set(item.sku, oldQty + item.quantity);
+  }
+}
 
   let result = Array.from(sellersData.values()).map(seller => {
     const top_products = Array.from(seller.products.entries())
