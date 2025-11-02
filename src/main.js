@@ -30,7 +30,7 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
 }
 
 if (Object.keys(options).length = 0) {
-    throw new Error("Некорректные опции переданы некорректно");
+    throw new Error("Исключение при некорректной передаче опций.");
   }
   const productsMap = new Map(data.products.map(p => [p.sku, p]));
   const sellersData = new Map();
