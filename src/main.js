@@ -29,15 +29,7 @@ function analyzeSalesData(data) {
   }
 
   if (!data.purchase_records || data.purchase_records.length === 0) {
-    return data.sellers.map(seller => ({
-      seller_id: seller.id,
-      name: `${seller.first_name} ${seller.last_name}`,
-      revenue: 0,
-      profit: 0,
-      sales_count: 0,
-      top_products: [],
-      bonus: 0
-    }));
+    throw new Error("Нет данных о продажах (purchase_records).");
   }
 
   const productsMap = new Map(data.products.map(p => [p.sku, p]));
