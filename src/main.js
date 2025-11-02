@@ -107,7 +107,7 @@ function analyzeSalesData(data, options = {}) {
   result.sort((a, b) => b.profit - a.profit);
   const totalSellers = result.length;
   for (let i = 0; i < totalSellers; i++) {
-    result[i].bonus = calculateBonus(i, totalSellers, result[i]);
+    result[i].bonus = calculateBonusByProfit(i, totalSellers, result[i]);
   }
   return result;
 }
