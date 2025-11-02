@@ -1,8 +1,8 @@
-function calculateSimpleRevenue(items) {
-  return items.reduce((sum, item) => {
-    const priceWithDiscount = item.sale_price * (1 - item.discount / 100);
-    return sum + priceWithDiscount * item.quantity;
-  }, 0);
+function calculateSimpleRevenue(purchase, _product) {
+  const { discount, sale_price, quantity } = purchase;
+  // Рассчитываем сумму с учётом скидки и количества
+  const priceWithDiscount = sale_price * (1 - discount / 100);
+  return priceWithDiscount * quantity;
 }
 
 function calculateBonusByProfit(result) {
@@ -19,36 +19,7 @@ function calculateBonusByProfit(result) {
   }
 }
 
-
-  function analyzeSalesData(data) {
-  // Проверка, что data передан и является объектом
-  if (!data || typeof data !== 'object') {
-    throw new Error("Некорректные опции: должен быть передан объект 'data'.");
-  }
-
-  // Проверка наличия и типа обязательных полей
-  if (!Array.isArray(data.sellers)) {
-    throw new Error("Некорректные опции: поле 'sellers' должно быть массивом.");
-  }
-  if (!Array.isArray(data.products)) {
-    throw new Error("Некорректные опции: поле 'products' должно быть массивом.");
-  }
-  if (!Array.isArray(data.purchase_records)) {
-    throw new Error("Некорректные опции: поле 'purchase_records' должно быть массивом.");
-  }
-
-  // Проверка на пустые массивы
-  if (data.sellers.length === 0) {
-    throw new Error("Нет данных о продавцах (sellers).");
-  }
-
-  if (data.products.length === 0) {
-    throw new Error("Нет данных о продуктах (products).");
-  }
-
-  if (data.purchase_records.length === 0) {
-    throw new Error("Нет данных о продажах (purchase_records).");
-  }
+function analyzeSalesData(data) {
   if (!data.sellers || data.sellers.length === 0) {
     throw new Error("Нет данных о продавцах (sellers).");
   }
@@ -76,28 +47,34 @@ function calculateBonusByProfit(result) {
   });
 
   for (const receipt of data.purchase_records) {
-    const seller = sellersData.get(receipt.seller_id);
-    if (!seller) continue;
+  const seller = sellersData.get(receipt.seller_id);
+  if (!seller) continue;
 
-    const revenue = calculateSimpleRevenue(receipt.items);
-
-    let totalPurchaseCost = 0;
-    for (const item of receipt.items) {
-      const product = productsMap.get(item.sku);
-      if (!product) continue;
-      totalPurchaseCost += product.purchase_price * item.quantity;
-    }
-    const profit = revenue - totalPurchaseCost;
-
-    seller.revenue += revenue;
-    seller.profit += profit;
-    seller.sales_count += 1;
-
-    for (const item of receipt.items) {
-      const oldQty = seller.products.get(item.sku) || 0;
-      seller.products.set(item.sku, oldQty + item.quantity);
-    }
+  // Считаем выручку по каждому item и суммируем
+  let revenue = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    revenue += calculateSimpleRevenue(item, product);
   }
+
+  let totalPurchaseCost = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    totalPurchaseCost += product.purchase_price * item.quantity;
+  }
+  const profit = revenue - totalPurchaseCost;
+
+  seller.revenue += revenue;
+  seller.profit += profit;
+  seller.sales_count += 1;
+
+  for (const item of receipt.items) {
+    const oldQty = seller.products.get(item.sku) || 0;
+    seller.products.set(item.sku, oldQty + item.quantity);
+  }
+}
 
   let result = Array.from(sellersData.values()).map(seller => {
     const top_products = Array.from(seller.products.entries())
