@@ -29,9 +29,20 @@ if (!data.purchase_records || data.purchase_records.length === 0) {
   throw new Error("Нет данных о продажах (purchase_records).");
 }
 
-if (Object.keys(options).length == 0) {
-  throw new Error("Исключение при некорректной передаче опций.");
-}
+  if (typeof options !== "object" || options === null) {
+    throw new Error("Опции должны быть объектом.");
+  }
+
+  const { calculateRevenue, calculateBonus } = options;
+
+  if (!calculateRevenue || !calculateBonus) {
+    throw new Error("В опциях должны быть определены calculateRevenue и calculateBonus.");
+  }
+
+  if (typeof calculateRevenue !== "function" || typeof calculateBonus !== "function") {
+    throw new Error("calculateRevenue и calculateBonus должны быть функциями.");
+  }
+
   const productsMap = new Map(data.products.map(p => [p.sku, p]));
   const sellersData = new Map();
 
