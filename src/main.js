@@ -51,18 +51,21 @@ if (Object.keys(options).length == 0) {
   if (!seller) continue;
 
   let revenue = 0;
-for (const item of receipt.items) {
-  const product = productsMap.get(item.sku);
-  if (!product) continue;
-  revenue += Math.round(calculateSimpleRevenue(item, product) * 100) / 100;
-}
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    revenue += calculateSimpleRevenue(item, product);
+  }
 
-let totalPurchaseCost = 0;
-for (const item of receipt.items) {
-  const product = productsMap.get(item.sku);
-  if (!product) continue;
-  totalPurchaseCost += Math.round(product.purchase_price * item.quantity * 100) / 100;
-}
+  let totalPurchaseCost = 0;
+  for (const item of receipt.items) {
+    const product = productsMap.get(item.sku);
+    if (!product) continue;
+    totalPurchaseCost += product.purchase_price * item.quantity;
+  }
+
+  revenue = Math.round(revenue * 100) / 100;
+  totalPurchaseCost = Math.round(totalPurchaseCost * 100) / 100;
   const profit = revenue - totalPurchaseCost;
 
   seller.revenue += revenue;
